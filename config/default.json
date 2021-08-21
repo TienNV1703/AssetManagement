@@ -1,0 +1,20 @@
+{
+  "port": 5000,
+  "host": "localhost",
+  "basePath": "",
+  "mongodb": {
+    "url": "mongodb://localhost:27017/Assets"
+  },
+  "prefix": "",
+  "minio": {
+    "endPoint": "127.0.0.1",
+    "port": 9000,
+    "accessKey": "minioadmin",
+    "secretKey": "minioadmin"
+  },
+  "thumbnailSettings": {
+    "widthThumb": 400,
+    "fpsThumb": 4,
+    "durationThumb": 3
+  }
+}

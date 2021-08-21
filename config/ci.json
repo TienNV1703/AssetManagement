@@ -1,0 +1,19 @@
+{
+  "port": 3005,
+  "host": "0.0.0.0",
+  "basePath": "/ilp-campaign/v1",
+  "mongodbUrl": "mongodb://mongo:27017/auth",
+  "secret": "kame",
+  "whiteListPaths": ["/api/asset/detail"],
+  "admin": {
+    "username": "admin123",
+    "password": "qwertyui"
+  },
+  "singleTenancyMode": {
+    "enable": false,
+    "config": {
+      "app": "*",
+      "quota": "{}"
+    }
+  }
+}
