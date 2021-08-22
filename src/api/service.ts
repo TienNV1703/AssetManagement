@@ -17,7 +17,7 @@ export class ApiService {
   ) {}
 
   async uploadSingle(file: Express.Multer.File, @Req() request: Request) {
-    let uploaded_file = await this.minioClientService.uploadSingleFile(
+    const uploaded_file = await this.minioClientService.uploadSingleFile(
       file,
       request,
     );
