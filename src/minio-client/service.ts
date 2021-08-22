@@ -161,7 +161,7 @@ export class MinioClientService {
     }
   }
   public bufferToStream(dataBinary: string | Buffer) {
-    var streamData = new Stream.Readable();
+    const streamData = new Stream.Readable();
     streamData.push(dataBinary);
     streamData.push(null);
     return streamData;

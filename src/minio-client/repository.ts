@@ -31,8 +31,8 @@ export class MinioClientPepository {
   public async uploadDataAsset(dataAsset: any) {
     await this.checkInputUploadAsset(dataAsset);
     const timestamp = Date.now();
-    var saveResult;
-    var urlPreview;
+    let saveResult;
+    let urlPreview;
     // Check bucket existed or not
     const existedBuket = await this.client.bucketExists(dataAsset.appId);
     // If bucket is not existed, create bucket

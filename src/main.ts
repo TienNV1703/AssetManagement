@@ -1,3 +1,4 @@
+// all commit from TienNV
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import * as config from 'config';
