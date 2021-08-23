@@ -10,8 +10,8 @@ export class AppController {
     return this.appService.getHello();
   }
 
-  @Post('uploadData/:nameFile')
-  upLoadFile(): void {
-    return this.appService.upLoadFile();
-  }
+  // @Post('uploadData/:nameFile')
+  // upLoadFile(): void {
+  //   return this.appService.upLoadFile();
+  // }
 }

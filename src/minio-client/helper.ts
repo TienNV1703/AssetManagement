@@ -4,7 +4,7 @@ import * as config from 'config';
 
 @Injectable()
 export class MinioClientHelper {
-  constructor() {}
+  // constructor() {}
   public async getVideoInfo(pathfile: string) {
     return new Promise((resolve, reject) => {
       return Ffmpeg.ffprobe(pathfile, (error, videoInfo) => {
