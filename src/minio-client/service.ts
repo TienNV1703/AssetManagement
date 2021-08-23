@@ -1,30 +1,14 @@
-import {
-  Injectable,
-  Logger,
-  HttpException,
-  HttpStatus,
-  Req,
-} from '@nestjs/common';
+import { Injectable, HttpException, HttpStatus, Req } from '@nestjs/common';
 import { MinioClientPepository } from './repository';
-import { MinioClientHelper } from './helper';
-import {
-  BufferedFile,
-  ImageDataAsset,
-  DataAsset,
-  VideoInfo,
-} from './file.model';
 import * as config from 'config';
-import * as fs from 'fs';
 import { Request } from 'express';
 import sizeOf = require('image-size');
 import Stream = require('stream');
+import fs = require('fs');
 
 @Injectable()
 export class MinioClientService {
-  constructor(
-    private minioClientPepository: MinioClientPepository,
-    private minioClientHelper: MinioClientHelper,
-  ) {}
+  constructor(private minioClientPepository: MinioClientPepository) {}
 
   public async uploadSingleFile(
     file: Express.Multer.File,
@@ -54,7 +38,6 @@ export class MinioClientService {
         const height = dimentions.height;
         const contentType = file.mimetype;
         const size = file.size;
-        // let dataAsset: ImageDataAsset;
         const dataAsset = {
           typeData,
           name,
@@ -68,6 +51,7 @@ export class MinioClientService {
         const result = await this.minioClientPepository.uploadDataAsset(
           dataAsset,
         );
+        await fs.unlinkSync(file.path);
         return result;
       }
       case 'audio': {
@@ -98,6 +82,7 @@ export class MinioClientService {
         const result = await this.minioClientPepository.uploadDataAsset(
           dataAsset,
         );
+        await fs.unlinkSync(file.path);
         return result;
       }
       case 'video': {
@@ -109,53 +94,22 @@ export class MinioClientService {
         const dataBinary = fs.createReadStream(file.path);
         const contentType = file.mimetype;
         const size = file.size;
-        // let videoInfo: any ;
-        const videoInfo: any = await this.minioClientHelper.getVideoInfo(
-          file.path,
-        );
-        const timestamp = new Date().getTime();
-        const pathFileThumbnailPreview = '/tmp/' + timestamp + '.gif';
-        const contentTypeThumb = 'image/gif';
-        if (videoInfo.width < 400) {
-          await this.minioClientHelper.createFragmentPreviewConst(
-            file.path,
-            pathFileThumbnailPreview,
-          );
-        } else if (videoInfo.width >= 400) {
-          await this.minioClientHelper.createFragmentPreview(
-            file.path,
-            pathFileThumbnailPreview,
-          );
-        }
-        const dataBinaryThumb = fs.createReadStream(pathFileThumbnailPreview);
-        const thumbnaiInfo: any = await this.minioClientHelper.getVideoInfo(
-          file.path,
-        );
-        // const thumbnaiInfo: any = await this.minioClientHelper.getVideoInfo(pathFileThumbnailPreview);
-        const { widthThumb, heightThumb, sizeThumb } = thumbnaiInfo;
-        const width = videoInfo.width;
-        const height = videoInfo.height;
         const dataAsset = {
           typeData,
           name,
-          dataBinaryThumb,
           dataBinary,
           contentType,
           appId,
-          width,
-          height,
           size,
-          widthThumb,
-          heightThumb,
-          sizeThumb,
-          contentTypeThumb,
         };
         const result = await this.minioClientPepository.uploadDataAsset(
           dataAsset,
         );
-        // await unlink(req.file.path)
-        // await unlink(pathFileThumbnailPreview)
-        // res.status(status.OK).json({ msg: 'Them thanh cong', result });
+        const deletere = await fs.unlink(file.path, (error) => {
+          if (error) {
+            console.log(error);
+          }
+        });
         return result;
       }
     }

@@ -7,17 +7,20 @@ import { Asset, AssetSchema } from 'src/database/schemas/Asset.schema';
 import { MongooseModule } from '@nestjs/mongoose';
 import { MinioModule } from 'nestjs-minio-client';
 import * as config from 'config';
+import { S3Module } from 'nestjs-s3';
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: Asset.name, schema: AssetSchema }]),
     DatabaseConnectionModule,
-    MinioModule.register({
-      endPoint: config.get('minio.endPoint'),
-      port: config.get('minio.port'),
-      useSSL: false,
-      accessKey: config.get('minio.accessKey'),
-      secretKey: config.get('minio.secretKey'),
+    S3Module.forRoot({
+      config: {
+        accessKeyId: config.get('minio.accessKey'),
+        secretAccessKey: config.get('minio.secretKey'),
+        endpoint: config.get('minio.endPoint'),
+        s3ForcePathStyle: true,
+        signatureVersion: 'v4',
+      },
     }),
   ],
   providers: [MinioClientService, MinioClientPepository, MinioClientHelper],

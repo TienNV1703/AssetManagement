@@ -7,10 +7,11 @@
   },
   "prefix": "",
   "minio": {
-    "endPoint": "127.0.0.1",
+    "endPoint": "http://localhost:9000",
     "port": 9000,
     "accessKey": "minioadmin",
-    "secretKey": "minioadmin"
+    "secretKey": "minioadmin",
+    "region": "us-east-1"
   },
   "thumbnailSettings": {
     "widthThumb": 400,

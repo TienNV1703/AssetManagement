@@ -1,16 +1,9 @@
-import {
-  Injectable,
-  Logger,
-  HttpException,
-  HttpStatus,
-  Req,
-} from '@nestjs/common';
+import { Injectable, HttpException, HttpStatus, Req } from '@nestjs/common';
 
 import { BufferedFile, AppMimeType, DataAsset } from './file.model';
-import { MinioService } from 'nestjs-minio-client';
-
-import * as config from 'config';
-import * as fs from 'fs';
+// import { MinioService } from 'nestjs-minio-client';
+import { S3 } from 'aws-sdk';
+import { InjectS3 } from 'nestjs-s3';
 import { Request } from 'express';
 import { InjectModel } from '@nestjs/mongoose';
 import { Asset, AssetDocument } from 'src/database/schemas/Asset.schema';
@@ -21,32 +14,23 @@ import { Model } from 'mongoose';
 export class MinioClientPepository {
   constructor(
     @InjectModel(Asset.name) private assetModel: Model<AssetDocument>,
-    private readonly minio: MinioService,
+    // private readonly minio: MinioService,
+    @InjectS3() private readonly s3: S3,
   ) {}
-
-  public get client() {
-    return this.minio.client;
-  }
 
   public async uploadDataAsset(dataAsset: any) {
     await this.checkInputUploadAsset(dataAsset);
     const timestamp = Date.now();
     let saveResult;
-    let urlPreview;
+    // let urlPreview;
     // Check bucket existed or not
-    const existedBuket = await this.client.bucketExists(dataAsset.appId);
-    // If bucket is not existed, create bucket
-    if (!existedBuket) {
-      const region = 'us-east-1';
-      await this.client.makeBucket(dataAsset.appId, region, (error) => {
-        if (error) {
-          throw new HttpException(
-            'Fail to create new  bucket in MinIO S3',
-            HttpStatus.BAD_REQUEST,
-          );
-        }
-      });
-    }
+    try {
+      const createResult = await this.s3
+        .createBucket({ Bucket: dataAsset.appId })
+        .promise();
+      console.log(createResult);
+    } catch (e) {}
+
     switch (dataAsset.typeData) {
       case 1: {
         // get content type: sample "contentType": "image/jpg" -> return jpg
@@ -65,12 +49,17 @@ export class MinioClientPepository {
         const metaData = {
           'Content-Type': dataAsset.contentType,
         };
-        await this.client.putObject(
-          dataAsset.appId,
-          path,
-          dataAsset.dataBinary,
-          metaData,
-        );
+        try {
+          await this.s3
+            .upload({
+              Bucket: dataAsset.appId,
+              Key: String(path),
+              Body: dataAsset.dataBinary,
+            })
+            .promise();
+        } catch (e) {
+          console.log(e);
+        }
 
         // Image file
         if (dataAsset.contentType.split('/')[0] === 'image') {
@@ -106,26 +95,30 @@ export class MinioClientPepository {
         break;
       }
       case 2: {
+        const endFile = dataAsset.contentType.split('/')[1];
         const pathThumb =
           'asset' +
           '/' +
           dataAsset.typeData +
           '/' +
-          'thumbnail' +
           dataAsset.name +
           '_' +
           timestamp +
-          '.gif';
+          '.' +
+          endFile;
         const contentTypeThumb = 'image/gif';
         const metaDataThumb = { 'Content-Type': contentTypeThumb };
-        // await minioClient.putObject(appId, path, dataBinary, metaData)s
-        // ???? why?
-        await this.client.putObject(
-          dataAsset.appId,
-          pathThumb,
-          dataAsset.dataBinary,
-          metaDataThumb,
-        );
+        try {
+          await this.s3
+            .upload({
+              Bucket: dataAsset.appId,
+              Key: String(pathThumb),
+              Body: dataAsset.dataBinary,
+            })
+            .promise();
+        } catch (e) {
+          console.log(e);
+        }
         // save data to mongodb
         const model = new this.assetModel({
           typeData: dataAsset.typeData,

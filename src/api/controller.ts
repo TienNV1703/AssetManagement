@@ -37,14 +37,16 @@ import { Express } from 'express';
 
 import { editFileName, imageFileFilter } from '../utils/file-upload.utils';
 import * as config from 'config';
-
+import { InjectS3, S3 } from 'nestjs-s3';
 const prefix: string = config.get('prefix');
 
-@Controller(prefix + '/api/asset')
+@Controller('/api/asset')
 export class ApiController {
-  constructor(private readonly apiService: ApiService) {}
+  constructor(
+    @InjectS3() private readonly s3: S3,
+    private readonly apiService: ApiService,
+  ) {}
 
-  // Post
   @Post()
   @UseInterceptors(
     FileInterceptor('file', {
@@ -64,10 +66,24 @@ export class ApiController {
   }
 
   // get by id
-  @Get(':id')
-  findOne(@Req() request: Request) {
-    const id = request.params;
-    return this.apiService.findOne(request);
+  @Get()
+  async findOne(@Req() request: Request) {
+    try {
+      const createResult = await this.s3
+        .createBucket({ Bucket: 'bucket' })
+        .promise();
+      console.log(createResult);
+    } catch (e) {}
+
+    try {
+      const list = await this.s3.listBuckets().promise();
+      return list.Buckets;
+    } catch (e) {
+      console.log(e);
+    }
+
+    // const id = request.params;
+    // return this.apiService.findOne(request);
   }
 
   // get detail by id
